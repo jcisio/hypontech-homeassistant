@@ -57,10 +57,6 @@ This custom component is maintained alongside the Home Assistant core integratio
 
 2. **Sync to Custom Component**
    ```bash
-   # Dry run to see what will change
-   ./sync_from_core.sh --dry-run
-
-   # Actually sync the changes
    ./sync_from_core.sh
    ```
 
@@ -75,29 +71,6 @@ The `sync_from_core.sh` script:
   - Updates documentation URL to GitHub repository
   - Adds/increments `version` field (automatically bumps patch version)
 - ❌ Does NOT copy `quality_scale.yaml` (core only)
-
-### File-Specific Notes
-
-#### manifest.json
-The manifest differs between core and custom component:
-
-**Core Integration:**
-```json
-{
-  "domain": "hypontech",
-  "documentation": "https://www.home-assistant.io/integrations/hypontech",
-  "quality_scale": "bronze"
-}
-```
-
-**Custom Component:**
-```json
-{
-  "domain": "hypontech",
-  "documentation": "https://github.com/jcisio/hypontech-homeassistant",
-  "version": "1.0.0"
-}
-```
 
 The sync script handles this automatically and increments the patch version with each sync.
 
