@@ -1,6 +1,6 @@
 # Hypontech Cloud Integration for Home Assistant
 
-Custom component for integrating Hypontech Cloud energy storage systems with Home Assistant.
+Custom component for integrating Hypontech Cloud systems with Home Assistant.
 
 ## Installation
 
@@ -30,18 +30,34 @@ Custom component for integrating Hypontech Cloud energy storage systems with Hom
 
 ## Features
 
-- Monitor your Hypontech energy storage system
+- Monitor your Hypontech energy production and storage system
 - Real-time data updates
-- Sensor entities for battery status, power, energy, and more
+- Sensor entities for solar production power, energy, and more
 
 ## Requirements
 
-- Home Assistant 2024.1.0 or later
+- Home Assistant 2025.12.0 or later
 - Hypontech Cloud account with valid credentials
 
 ## Support
 
 For issues and feature requests, please use the [GitHub issue tracker](https://github.com/jcisio/hypontech-homeassistant/issues).
+
+## Development
+
+This custom component is maintained alongside the [Home Assistant core integration](https://www.home-assistant.io/integrations/hypontech). Changes are developed here first, then synced to the core repository to improve the current PR https://github.com/home-assistant/core/pull/159442 until it is merged.
+
+For development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+### Quick Start for Developers
+
+```bash
+# Test the integration
+pytest tests/hypontech
+
+# Sync changes to Home Assistant core
+./sync_to_core.sh
+```
 
 ## License
 
