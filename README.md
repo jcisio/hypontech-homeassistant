@@ -45,19 +45,60 @@ For issues and feature requests, please use the [GitHub issue tracker](https://g
 
 ## Development
 
-This custom component is maintained alongside the [Home Assistant core integration](https://www.home-assistant.io/integrations/hypontech). Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442) to this custom component to keep both versions in sync.
+This custom component is maintained alongside the Home Assistant core integration. Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442) to this custom component to keep both versions in sync.
 
-For development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+### Making Changes
 
-### Quick Start for Developers
+1. **Develop in Core Component**
+   - Primary development work is done in the Home Assistant core repository
+   - Make changes in `/workspaces/home-assistant-core/homeassistant/components/hypontech/`
+   - Write or update tests in `/workspaces/home-assistant-core/tests/components/hypontech/`
 
-```bash
-# Test the integration
-pytest tests/hypontech
+2. **Sync to Custom Component**
+   ```bash
+   # Dry run to see what will change
+   ./sync_from_core.sh --dry-run
 
-# Sync changes from Home Assistant core
-./sync_from_core.sh
+   # Actually sync the changes
+   ./sync_from_core.sh
+   ```
+
+### What the Sync Script Does
+
+The `sync_from_core.sh` script:
+
+- ✅ Copies Python files from core to custom component (`__init__.py`, `config_flow.py`, `const.py`, etc.)
+- ✅ Syncs test files from core tests to `tests/hypontech/`
+- ✅ Updates `manifest.json` with custom component specific fields:
+  - Removes `quality_scale` field (core only)
+  - Updates documentation URL to GitHub repository
+  - Adds/increments `version` field (automatically bumps patch version)
+- ❌ Does NOT copy `quality_scale.yaml` (core only)
+
+### File-Specific Notes
+
+#### manifest.json
+The manifest differs between core and custom component:
+
+**Core Integration:**
+```json
+{
+  "domain": "hypontech",
+  "documentation": "https://www.home-assistant.io/integrations/hypontech",
+  "quality_scale": "bronze"
+}
 ```
+
+**Custom Component:**
+```json
+{
+  "domain": "hypontech",
+  "documentation": "https://github.com/jcisio/hypontech-homeassistant",
+  "version": "1.0.0"
+}
+```
+
+The sync script handles this automatically and increments the patch version with each sync.
 
 ## License
 
