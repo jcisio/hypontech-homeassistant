@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create release archive
+        run: |
+          cd custom_components
+          zip -r ../hypontech-${{ steps.version.outputs.VERSION }}.zip hypontech/
+          cd ..
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          {
+            echo 'NOTES<<EOF'
+            echo "## Hypontech Home Assistant Integration v${{ steps.version.outputs.VERSION }}"
+            echo ""
+            echo "### Installation"
+            echo "1. Download \`hypontech-${{ steps.version.outputs.VERSION }}.zip\`"
+            echo "2. Extract it to your Home Assistant \`custom_components\` directory"
+            echo "3. Restart Home Assistant"
+            echo ""
+            echo "### Changes"
+            echo "See the commit history for details of changes in this release."
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release v${{ steps.version.outputs.VERSION }}
+          body: ${{ steps.notes.outputs.NOTES }}
+          files: |
+            hypontech-${{ steps.version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
