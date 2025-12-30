@@ -1,6 +1,7 @@
 # Hypontech Cloud Integration for Home Assistant
 
 Custom component for integrating Hypontech Cloud systems with Home Assistant.
+![Hypontech sensors available in Home Assistant](screenshot.png "Sensors")
 
 ## Installation
 
