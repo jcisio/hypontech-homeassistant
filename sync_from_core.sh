@@ -63,6 +63,7 @@ FILES_TO_SYNC=(
     "config_flow.py"
     "const.py"
     "coordinator.py"
+    "entity.py"
     "sensor.py"
     "strings.json"
 )
