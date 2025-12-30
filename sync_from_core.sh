@@ -112,7 +112,7 @@ if [ -f "$CUSTOM_MANIFEST" ]; then
 fi
 
 # Increment patch version
-NEW_VERSION=$(python3 << 'VEOF'
+NEW_VERSION=$(python3 << VEOF
 version = "$CURRENT_VERSION"
 parts = version.split('.')
 if len(parts) == 3:
@@ -123,8 +123,6 @@ else:
     print("1.0.1")
 VEOF
 )
-
-NEW_VERSION=$(echo "$NEW_VERSION" | sed "s/\$CURRENT_VERSION/$CURRENT_VERSION/g")
 
 # Create a temporary manifest with custom component specific modifications
 TEMP_MANIFEST=$(mktemp)
