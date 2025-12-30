@@ -1,0 +1,10 @@
+{
+  "domain": "hypontech",
+  "name": "Hypontech Cloud",
+  "codeowners": ["@jcisio"],
+  "config_flow": true,
+  "documentation": "https://github.com/jcisio/hypontech-homeassistant",
+  "iot_class": "cloud_polling",
+  "requirements": ["hyponcloud==0.2.2"],
+  "version": "1.0.0"
+}
