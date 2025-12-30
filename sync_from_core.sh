@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Sync script to copy changes from custom component to Home Assistant core
-# Usage: ./sync_to_core.sh [--dry-run]
+# Sync script to copy changes from Home Assistant core to custom component
+# Usage: ./sync_from_core.sh [--dry-run]
 
 set -e
 
@@ -13,10 +13,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Directories
-CUSTOM_DIR="/workspaces/hypontech-homeassistant/custom_components/hypontech"
 CORE_DIR="/workspaces/home-assistant-core/homeassistant/components/hypontech"
-TEST_CUSTOM_DIR="/workspaces/hypontech-homeassistant/tests/hypontech"
+CUSTOM_DIR="/workspaces/hypontech-homeassistant/custom_components/hypontech"
 TEST_CORE_DIR="/workspaces/home-assistant-core/tests/components/hypontech"
+TEST_CUSTOM_DIR="/workspaces/hypontech-homeassistant/tests/hypontech"
 
 # Check if running in dry-run mode
 DRY_RUN=false
@@ -43,21 +43,21 @@ print_error() {
 }
 
 # Check if directories exist
-if [ ! -d "$CUSTOM_DIR" ]; then
-    print_error "Custom component directory not found: $CUSTOM_DIR"
-    exit 1
-fi
-
 if [ ! -d "$CORE_DIR" ]; then
     print_error "Core component directory not found: $CORE_DIR"
     exit 1
 fi
 
-print_status "Syncing from custom component to core..."
-echo -e "  Source: ${CUSTOM_DIR}"
-echo -e "  Target: ${CORE_DIR}\n"
+if [ ! -d "$CUSTOM_DIR" ]; then
+    print_error "Custom component directory not found: $CUSTOM_DIR"
+    exit 1
+fi
 
-# List of files to sync (excluding manifest.json and quality_scale.yaml)
+print_status "Syncing from core component to custom component..."
+echo -e "  Source: ${CORE_DIR}"
+echo -e "  Target: ${CUSTOM_DIR}\n"
+
+# List of files to sync (excluding manifest.json)
 FILES_TO_SYNC=(
     "__init__.py"
     "config_flow.py"
@@ -72,8 +72,8 @@ CHANGES_MADE=0
 
 # Sync Python and JSON files
 for file in "${FILES_TO_SYNC[@]}"; do
-    SOURCE="$CUSTOM_DIR/$file"
-    TARGET="$CORE_DIR/$file"
+    SOURCE="$CORE_DIR/$file"
+    TARGET="$CUSTOM_DIR/$file"
 
     if [ ! -f "$SOURCE" ]; then
         print_warning "Source file not found: $file (skipping)"
@@ -97,40 +97,63 @@ for file in "${FILES_TO_SYNC[@]}"; do
     fi
 done
 
-# Handle manifest.json specially - need to restore core-specific fields
+# Handle manifest.json specially - need to add custom component specific fields
 print_status "Checking manifest.json..."
-CUSTOM_MANIFEST="$CUSTOM_DIR/manifest.json"
 CORE_MANIFEST="$CORE_DIR/manifest.json"
+CUSTOM_MANIFEST="$CUSTOM_DIR/manifest.json"
 
-# Create a temporary manifest with core-specific modifications
+# Get the current version and increment patch number
+CURRENT_VERSION="1.0.0"
+NEW_VERSION=""
+
+if [ -f "$CUSTOM_MANIFEST" ]; then
+    CURRENT_VERSION=$(python3 -c "import json; print(json.load(open('$CUSTOM_MANIFEST')).get('version', '1.0.0'))" 2>/dev/null || echo "1.0.0")
+fi
+
+# Increment patch version
+NEW_VERSION=$(python3 << 'VEOF'
+version = "$CURRENT_VERSION"
+parts = version.split('.')
+if len(parts) == 3:
+    major, minor, patch = parts
+    patch = str(int(patch) + 1)
+    print(f"{major}.{minor}.{patch}")
+else:
+    print("1.0.1")
+VEOF
+)
+
+NEW_VERSION=$(echo "$NEW_VERSION" | sed "s/\$CURRENT_VERSION/$CURRENT_VERSION/g")
+
+# Create a temporary manifest with custom component specific modifications
 TEMP_MANIFEST=$(mktemp)
 
-# Read custom manifest and modify for core
-python3 << 'EOF' > "$TEMP_MANIFEST"
+# Read core manifest and modify for custom component
+python3 << EOF > "$TEMP_MANIFEST"
 import json
 
-with open("/workspaces/hypontech-homeassistant/custom_components/hypontech/manifest.json") as f:
+with open("$CORE_MANIFEST") as f:
     manifest = json.load(f)
 
-# Remove custom component specific fields
-if "version" in manifest:
-    del manifest["version"]
+# Remove core-specific fields
+if "quality_scale" in manifest:
+    del manifest["quality_scale"]
 
-# Add core-specific fields
-manifest["quality_scale"] = "bronze"
-manifest["documentation"] = "https://www.home-assistant.io/integrations/hypontech"
+# Add custom component specific fields
+manifest["version"] = "$NEW_VERSION"
+manifest["documentation"] = "https://github.com/jcisio/hypontech-homeassistant"
 
 # Pretty print
 print(json.dumps(manifest, indent=2))
 EOF
 
-# Check if the modified manifest differs from core manifest
-if ! cmp -s "$TEMP_MANIFEST" "$CORE_MANIFEST"; then
+# Check if the modified manifest differs from custom manifest
+if ! cmp -s "$TEMP_MANIFEST" "$CUSTOM_MANIFEST"; then
     if [ "$DRY_RUN" = false ]; then
-        cp "$TEMP_MANIFEST" "$CORE_MANIFEST"
-        print_success "  ✓ Updated manifest.json (with core-specific fields)"
+        cp "$TEMP_MANIFEST" "$CUSTOM_MANIFEST"
+        print_success "  ✓ Updated manifest.json (version: $CURRENT_VERSION → $NEW_VERSION)"
     else
-        print_warning "  [DRY-RUN] Would update manifest.json"
+        print_warning "  [DRY-RUN] Would update manifest.json (version: $CURRENT_VERSION → $NEW_VERSION)"
     fi
     CHANGES_MADE=$((CHANGES_MADE + 1))
 else
@@ -140,18 +163,18 @@ fi
 rm "$TEMP_MANIFEST"
 
 # Sync test files
-if [ -d "$TEST_CUSTOM_DIR" ]; then
+if [ -d "$TEST_CORE_DIR" ]; then
     print_status "Syncing test files..."
 
-    for test_file in "$TEST_CUSTOM_DIR"/*.py; do
+    for test_file in "$TEST_CORE_DIR"/*.py; do
         if [ -f "$test_file" ]; then
             filename=$(basename "$test_file")
             SOURCE="$test_file"
-            TARGET="$TEST_CORE_DIR/$filename"
+            TARGET="$TEST_CUSTOM_DIR/$filename"
 
             if ! cmp -s "$SOURCE" "$TARGET" 2>/dev/null; then
                 if [ "$DRY_RUN" = false ]; then
-                    mkdir -p "$TEST_CORE_DIR"
+                    mkdir -p "$TEST_CUSTOM_DIR"
                     cp "$SOURCE" "$TARGET"
                     print_success "  ✓ Updated tests/$filename"
                 else
@@ -164,21 +187,21 @@ if [ -d "$TEST_CUSTOM_DIR" ]; then
         fi
     done
 else
-    print_warning "Test directory not found in custom component"
+    print_warning "Test directory not found in core component"
 fi
 
 echo ""
 if [ $CHANGES_MADE -eq 0 ]; then
-    print_success "No changes detected - core component is up to date!"
+    print_success "No changes detected - custom component is up to date!"
 else
     if [ "$DRY_RUN" = false ]; then
-        print_success "Successfully synced $CHANGES_MADE file(s) to core component!"
+        print_success "Successfully synced $CHANGES_MADE file(s) to custom component!"
         echo ""
         print_warning "Remember to:"
-        echo "  1. Review the changes in the core component"
-        echo "  2. Run tests: pytest ./tests/components/hypontech"
-        echo "  3. Run linters: pre-commit run --files homeassistant/components/hypontech/*"
-        echo "  4. Commit the changes to the core repository"
+        echo "  1. Review the changes in the custom component"
+        echo "  2. Run tests: pytest tests/hypontech"
+        echo "  3. Test in your Home Assistant instance"
+        echo "  4. Commit the changes (version bumped to $NEW_VERSION)"
     else
         print_warning "Would sync $CHANGES_MADE file(s) (run without --dry-run to apply)"
     fi

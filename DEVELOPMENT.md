@@ -6,9 +6,9 @@ This document describes the development workflow for maintaining both the custom
 
 ```
 hypontech-homeassistant/
-├── custom_components/hypontech/    # Custom component (development version)
+├── custom_components/hypontech/    # Custom component (synced from core)
 ├── tests/hypontech/                # Tests for the integration
-├── sync_to_core.sh                 # Script to sync changes to core
+├── sync_from_core.sh               # Script to sync changes from core
 └── README.md                       # User documentation
 ```
 
@@ -16,44 +16,36 @@ hypontech-homeassistant/
 
 ### Making Changes
 
-1. **Develop in Custom Component**
-   - All development work should be done in `custom_components/hypontech/`
-   - Write or update tests in `tests/hypontech/`
+1. **Develop in Core Component**
+   - Primary development work is done in the Home Assistant core repository
+   - Make changes in `/workspaces/home-assistant-core/homeassistant/components/hypontech/`
+   - Write or update tests in `/workspaces/home-assistant-core/tests/components/hypontech/`
 
-2. **Sync to Core Integration**
+2. **Sync to Custom Component**
    ```bash
    # Dry run to see what will change
-   ./sync_to_core.sh --dry-run
+   ./sync_from_core.sh --dry-run
 
    # Actually sync the changes
-   ./sync_to_core.sh
+   ./sync_from_core.sh
    ```
 
 ### What the Sync Script Does
 
-The `sync_to_core.sh` script:
+The `sync_from_core.sh` script:
 
-- ✅ Copies Python files (`__init__.py`, `config_flow.py`, `const.py`, etc.)
-- ✅ Syncs test files from `tests/hypontech/` to core tests
-- ✅ Updates `manifest.json` with core-specific fields:
-  - Adds `quality_scale: bronze`
-  - Updates documentation URL to Home Assistant website
-  - Removes `version` field (custom component only)
+- ✅ Copies Python files from core to custom component (`__init__.py`, `config_flow.py`, `const.py`, etc.)
+- ✅ Syncs test files from core tests to `tests/hypontech/`
+- ✅ Updates `manifest.json` with custom component specific fields:
+  - Removes `quality_scale` field (core only)
+  - Updates documentation URL to GitHub repository
+  - Adds/increments `version` field (automatically bumps patch version)
 - ❌ Does NOT copy `quality_scale.yaml` (core only)
 
 ### File-Specific Notes
 
 #### manifest.json
-The manifest differs between custom component and core:
-
-**Custom Component:**
-```json
-{
-  "domain": "hypontech",
-  "documentation": "https://github.com/jcisio/hypontech-homeassistant",
-  "version": "1.0.0"
-}
-```
+The manifest differs between core and custom component:
 
 **Core Integration:**
 ```json
@@ -64,41 +56,39 @@ The manifest differs between custom component and core:
 }
 ```
 
-The sync script handles this automatically.
+**Custom Component:**
+```json
+{
+  "domain": "hypontech",
+  "documentation": "https://github.com/jcisio/hypontech-homeassistant",
+  "version": "1.0.0"
+}
+```
+
+The sync script handles this automatically and increments the patch version with each sync.
 
 ## Testing
 
-### Running Tests
-
-From the Home Assistant core directory:
-
-```bash
-# Run all tests for hypontech
-pytest ./tests/components/hypontech \
-  --cov=homeassistant.components.hypontech \
-  --cov-report term-missing
-```
-
-### Writing Tests
-
-- Place test files in `tests/hypontech/`
-- Follow Home Assistant testing patterns
-- Use fixtures from `conftest.py`
-- Import from `homeassistant.components.hypontech` (works for both custom and core)
+Use Home Assistant workflow.
 
 ## Release Workflow
 
 ### Custom Component Release
 
-1. Update version in `custom_components/hypontech/manifest.json`
-2. Update `README.md` with any new features or changes
+1. Sync changes from core (version is auto-incremented):
+   ```bash
+   ./sync_from_core.sh
+   ```
+2. Update `README.md` with any new features or changes if needed
 3. Commit changes:
    ```bash
    git add .
-   git commit -m "Release v1.x.x"
+   git commit -m "Sync from core - Release v1.x.x"
    ```
 4. Create and push tag:
    ```bash
    git tag -a v1.x.x -m "Release v1.x.x"
    git push origin main --tags
    ```
+
+Note: The version is automatically incremented by the sync script, so you don't need to manually update `manifest.json`.

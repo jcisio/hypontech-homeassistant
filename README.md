@@ -45,7 +45,7 @@ For issues and feature requests, please use the [GitHub issue tracker](https://g
 
 ## Development
 
-This custom component is maintained alongside the [Home Assistant core integration](https://www.home-assistant.io/integrations/hypontech). Changes are developed here first, then synced to the core repository to improve the current PR https://github.com/home-assistant/core/pull/159442 until it is merged.
+This custom component is maintained alongside the [Home Assistant core integration](https://www.home-assistant.io/integrations/hypontech). Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442) to this custom component to keep both versions in sync.
 
 For development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -55,8 +55,8 @@ For development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
 # Test the integration
 pytest tests/hypontech
 
-# Sync changes to Home Assistant core
-./sync_to_core.sh
+# Sync changes from Home Assistant core
+./sync_from_core.sh
 ```
 
 ## License
