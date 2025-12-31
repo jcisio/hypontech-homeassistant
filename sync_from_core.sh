@@ -195,12 +195,11 @@ if [ $CHANGES_MADE -eq 0 ]; then
 else
     if [ "$DRY_RUN" = false ]; then
         print_success "Successfully synced $CHANGES_MADE file(s) to custom component!"
-        echo ""
-        print_warning "Remember to:"
-        echo "  1. Review the changes in the custom component"
-        echo "  2. Run tests: pytest tests/hypontech"
-        echo "  3. Test in your Home Assistant instance"
-        echo "  4. Commit the changes (version bumped to $NEW_VERSION)"
+        git add .
+        git ci -am "Bump to version $NEW_VERSION"
+        git tag $NEW_VERSION
+        git push --follow-tags
+        print_success "Tagged and pushed new version $NEW_VERSION"
     else
         print_warning "Would sync $CHANGES_MADE file(s) (run without --dry-run to apply)"
     fi
