@@ -198,7 +198,8 @@ else
         git add .
         git ci -am "Bump to version $NEW_VERSION"
         git tag $NEW_VERSION
-        git push --follow-tags
+        git push
+        git push --tags
         print_success "Tagged and pushed new version $NEW_VERSION"
     else
         print_warning "Would sync $CHANGES_MADE file(s) (run without --dry-run to apply)"
