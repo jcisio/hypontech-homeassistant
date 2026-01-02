@@ -1,5 +1,8 @@
 # Hypontech Cloud Integration for Home Assistant
 
+**This custom component is maintained alongside the Home Assistant core integration. Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442).**
+
+
 Custom component for integrating Hypontech Cloud systems with Home Assistant.
 ![Hypontech sensors available in Home Assistant](screenshot.png "Sensors")
 
@@ -45,8 +48,6 @@ Custom component for integrating Hypontech Cloud systems with Home Assistant.
 For issues and feature requests, please use the [GitHub issue tracker](https://github.com/jcisio/hypontech-homeassistant/issues).
 
 ## Development
-
-This custom component is maintained alongside the Home Assistant core integration. Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442) to this custom component to keep both versions in sync.
 
 ### Making Changes
 
