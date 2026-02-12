@@ -41,7 +41,7 @@ OVERVIEW_SENSORS: tuple[HypontechSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda c: c.power,
+        value_fn=lambda c: c.power * 1000 if c.company == "KW" else c.power,
     ),
     HypontechSensorDescription(
         key="lifetime_energy",
