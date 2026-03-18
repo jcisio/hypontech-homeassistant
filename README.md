@@ -1,3 +1,9 @@
+**⚠️This integration is now in core. Mission accomplished!⚠️**
+
+https://www.home-assistant.io/integrations/hypontech
+
+--------------------
+
 # Hypontech Cloud Integration for Home Assistant
 
 **This custom component is maintained alongside the Home Assistant core integration. Changes are synced from the core repository (PR https://github.com/home-assistant/core/pull/159442).**
